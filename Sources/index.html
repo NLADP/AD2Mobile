@@ -1,0 +1,159 @@
+<html>
+    <head>
+        <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+        <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.9/jquery-ui.min.js"></script>
+        <script type="text/javascript" src="knockout-2.1.0.js"></script>
+        <link type="text/css" href="ui-darkness/jquery-ui-1.8.20.custom.css" rel="stylesheet" />
+        
+        <style type="text/css">
+            html {
+                width: 900px;
+            }
+        </style>
+
+        <script type="text/javascript">
+
+            var projectsVM = new ProjectViewModel();
+            
+            
+            var baseUrl = "http://localhost/Dashboard/";
+//            var baseUrl = "http://2c9a44f3e6bb47e99f12742cd1f72cfe.cloudapp.net/";
+        
+            function Project(data) {
+                this.Id = ko.observable(data.Id);
+                this.Name = ko.observable(data.Name);
+            }
+        
+            function User(data) {
+                this.Id = ko.observable(data.Id);
+                this.Name = ko.observable(data.Name);
+            }
+        
+            function WorkItem(data) {
+                this.Id = ko.observable(data.Id);
+                this.Name = ko.observable(data.Name);
+                this.Description = ko.observable(data.Description);
+                this.Status = ko.observable(data.Status);
+            }
+            
+            function Observable(data) {
+                for (var member in data) {
+                    this[member] = ko.observable(data[member]);
+                }
+            }
+        
+            function ProjectViewModel() {
+                var self = this;
+
+                self.WorkItems = ko.observableArray([]);
+
+                self.GetWorkItems = function (project) {
+                    $.getJSON(baseUrl + "WorkItem", { project: project.Id() }, function (allItems) {
+                        var items = $.map(allItems, function (item) { return new Observable(item); });
+                        self.WorkItems(items);
+                    });
+                };
+
+                self.Projects = ko.observableArray([]);
+
+                self.SelectProject = function (project) {
+                    $("#projectList").hide();
+                    $("#workItemList").show();
+                    self.GetWorkItems(project);
+                };
+
+                self.GetProjects = function() {
+                    $.getJSON(baseUrl + "Project", function(allProjects) {
+                        var projects = $.map(allProjects, function (item) { return new Observable(item); });
+                        self.Projects(projects);
+                        $("#projectList").show();
+                    });
+                };
+
+                self.Back = function() {
+                    $("#workItemList").hide();
+                    $("#projectList").show();
+                };
+            }
+            
+
+
+            $(document).ready(function () {
+                $("#btnSubmit").click(function () {
+                    $.post(baseUrl + "Login",
+                        {
+                            UserName: $("#UserName").val(),
+                            Password: $("#Password").val()
+                        })
+                        .success(function (d) {
+                            //alert(d);
+                            $("#LoginForm").hide();
+
+                            projectsVM.GetProjects();
+
+                        });
+                });
+
+                    $("#backbutton").button();
+                    $("#btnSubmit").button();
+                    $("#workItemList").hide();
+                    $("#projectList").hide();
+
+                ko.applyBindings(projectsVM);
+
+            });
+
+        </script>
+    </head>
+    <body class="ui-widget">
+        <H1>AD2 Mobile</H1>
+        <div id="dialog" class="ui-widget-content ui-corner-all ui-dialog-content">
+        <form id="LoginForm">
+            <P>
+                <LABEL for="UserName">Username: </LABEL>
+                <input type="text" id="UserName" name="UserName" class="text ui-widget-content ui-corner-all"><BR>
+                <LABEL for="Password">Password: </LABEL>
+                <input type="password" id="Password" name="Password" class="text ui-widget-content ui-corner-all"><BR>
+                <input type="button" value="Login" id="btnSubmit" class="ui-button-text"> 
+            </P>
+        </form>
+        </div>
+        
+        <div class="ui-widget ui-corner-all">
+            <table id="projectList" >
+                <thead class="ui-widget-header">
+                    <tr><th>Project</th></tr>
+                </thead>
+                <tbody data-bind="foreach: Projects" class="ui-widget-content">
+                    <tr>
+                        <td ><a href="#" data-bind="text: Name, click: $parent.SelectProject"></a></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div  id="workItemList">
+            <!--<input type="button" data-bind="click: Back" value="Back" />--><br/>
+            <!--<button id="backbutton" class="ui-state-default, ui-widget-content ui-corner-all"><span class="ui-button-text-only ui-button-text">Back</span></button>-->
+            <button id="backbutton" data-bind="click: Back">Back</button>
+
+            <table class="ui-widget">
+                <thead class="ui-widget-header">
+                    <tr>
+                        <th>Work item</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody data-bind="foreach: WorkItems" class="ui-widget-content">
+                    <tr>
+                        <td data-bind="text: Name"></td>
+                        <td data-bind="text: Status"></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </body>
+</html>
+
+        
+      
