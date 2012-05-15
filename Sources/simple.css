@@ -4,20 +4,18 @@
 	color: white;
 	width: 100%;
 	font-family: Arial;
-	padding: 4px;
 }
 
-HR
+.Widget
 {
-	color: white;
-	width: 100%;
+	padding: 2px;
 }
 
 H1
 {
 	color: white;
 	font-side: 18px;
-	width: 100%
+	width: 98%
 	height: 24px;
 }
 
@@ -26,7 +24,8 @@ H2
 	color: orange;
 	font-size: 18px;
 	height: 24px;
-	width: 100%;
+	width: 98%;
+	border-bottom: 1px solid white;
 }
 
 .Label
@@ -34,12 +33,12 @@ H2
 	color: white;
 	font-size: 16px;
 	height: 24px;
-	width: 100%;
+	width: 98%;
 }
 
 .Field
 {
-	width: 100%;
+	width: 98%;
 	height: 24px;
 }
 

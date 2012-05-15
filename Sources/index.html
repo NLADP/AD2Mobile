@@ -16,8 +16,8 @@
             var projectsVM = new ProjectViewModel();
             
             
-            var baseUrl = "http://localhost/Dashboard/";
-//            var baseUrl = "http://2c9a44f3e6bb47e99f12742cd1f72cfe.cloudapp.net/";
+//            var baseUrl = "http://localhost/Dashboard/";
+            var baseUrl = "http://2c9a44f3e6bb47e99f12742cd1f72cfe.cloudapp.net/";
         
             function Observable(data) {
                 for (var member in data) {
@@ -81,32 +81,25 @@
     </head>
     <body class="Dashboard" >
         <H1 color="white">AD2 Mobile</H1>
-		<hr>
-        <div id="dialog" class="ui-widget-content ui-corner-all ui-dialog-content" data-bind="visible: IsCurrentWidget('Login')">
+        <div class="widget" id="dialog" data-bind="visible: IsCurrentWidget('Login')">
         <form id="LoginForm">
             <P>
 				<h2 >Login</h2>
                 <LABEL class="Label" for="UserName">Account</LABEL></br>
-                <input class="Field" type="text" id="UserName" name="UserName" class="text ui-widget-content ui-corner-all"></BR>
+                <input class="Field" type="text" id="UserName" name="UserName" ></BR>
 				</br>
                 <LABEL class="Label" for="Password">Password</LABEL></br>
-                <input class="Field" type="password" id="Password" name="Password" class="text ui-widget-content ui-corner-all"></BR></br>
-                <input class="SmartButton" type="button" value="Login" id="btnSubmit" class="ui-button-text"> 
+                <input class="Field" type="password" id="Password" name="Password" ></BR></br>
+                <input class="SmartButton" type="button" value="Login" id="btnSubmit" > 
             </P>
         </form>
         </div>
         
-        <div class="ui-widget ui-corner-all" data-bind="visible: IsCurrentWidget('Projects')">
-            <table id="projectList" >
-                <thead class="ui-widget-header">
-                    <tr><th>My projects</th></tr>
-                </thead>
-                <tbody data-bind="foreach: Projects" class="ui-widget-content">
-                    <tr>
-                        <td ><a href="#" data-bind="text: Name, click: $parent.SelectProject"></a></td>
-                    </tr>
-                </tbody>
-            </table>
+        <div class="widget" data-bind="visible: IsCurrentWidget('Projects')">
+			<h2>My projects</h2></br>
+			<div data-bind="foreach: Projects">
+                <LABEL class="Label" data-bind="text: Name, click: $parent.SelectProject">Password</LABEL></br>
+			</div>
         </div>
 
         <div  id="workItemList"  data-bind="visible: IsCurrentWidget('WorkItems')">
