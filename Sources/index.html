@@ -28,11 +28,11 @@
             function ProjectViewModel() {
                 var self = this;
 
-				self.CurrentWidget = "Login";
+				self.CurrentWidget = ko.observable("Login");
 				self.WorkItems = ko.observableArray([]);
 				
 				self.IsCurrentWidget = function(widget){
-					return widget == self.CurrentWidget;
+					return widget == self.CurrentWidget();
 				}
 
                 self.GetWorkItems = function (project) {
@@ -46,7 +46,7 @@
 
                 self.SelectProject = function (project) {
                     self.GetWorkItems(project);
-					self.CurrentWidget = "WorkItems";
+					self.CurrentWidget("WorkItems");
                 };
 
                 self.GetProjects = function() {
@@ -57,6 +57,7 @@
                 };
 
                 self.Back = function() {
+					projectsVM.CurrentWidget("Projects");
                 };
             }
 
@@ -69,8 +70,11 @@
                         })
                         .success(function (d) {
                             projectsVM.GetProjects();
-                            projectsVM.CurrentWidget = "Projects";
-                        });
+                            projectsVM.CurrentWidget("Projects");
+                        })
+						.error(function (e) {
+							alert(e);
+						});
                 });
 
                 ko.applyBindings(projectsVM);
