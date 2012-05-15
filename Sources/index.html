@@ -4,6 +4,7 @@
         <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.9/jquery-ui.min.js"></script>
         <script type="text/javascript" src="knockout-2.1.0.js"></script>
         <link type="text/css" href="simple.css" rel="stylesheet" />
+		<meta name="viewport" content="width=device-width">
         
         <style type="text/css">
             html {
@@ -84,47 +85,38 @@
         </script>
     </head>
     <body class="Dashboard" >
-        <H1 color="white">AD2 Mobile</H1>
+        <H1 >AD2 Mobile</H1>
         <div class="widget" id="dialog" data-bind="visible: IsCurrentWidget('Login')">
         <form id="LoginForm">
             <P>
 				<h2 >Login</h2>
-                <LABEL class="Label" for="UserName">Account</LABEL></br>
-                <input class="Field" type="text" id="UserName" name="UserName" ></BR>
-				</br>
+                <LABEL class="Label" for="UserName">Account</LABEL><br />
+                <input class="Field" type="text" id="UserName" name="UserName" ><BR />
+				<br />
                 <LABEL class="Label" for="Password">Password</LABEL></br>
-                <input class="Field" type="password" id="Password" name="Password" ></BR></br>
+                <input class="Field" type="password" id="Password" name="Password" ><BR /><br/>
                 <input class="SmartButton" type="button" value="Login" id="btnSubmit" > 
             </P>
         </form>
         </div>
         
         <div class="widget" data-bind="visible: IsCurrentWidget('Projects')">
-			<h2>My projects</h2></br>
+			<h2>My projects</h2>
 			<div data-bind="foreach: Projects">
-                <LABEL class="Label" data-bind="text: Name, click: $parent.SelectProject">Password</LABEL></br>
+                <div class="Cell">
+					<h2 class="SelectLabel" data-bind="text: Name, click: $parent.SelectProject"></h2>		
+				</div>
 			</div>
         </div>
 
-        <div  id="workItemList"  data-bind="visible: IsCurrentWidget('WorkItems')">
-            <!--<input type="button" data-bind="click: Back" value="Back" />--><br/>
-            <!--<button id="backbutton" class="ui-state-default, ui-widget-content ui-corner-all"><span class="ui-button-text-only ui-button-text">Back</span></button>-->
-            <button id="backbutton" data-bind="click: Back">Back</button>
-
-            <table class="ui-widget">
-                <thead class="ui-widget-header">
-                    <tr>
-                        <th>Work item</th>
-                        <th>Status</th>
-                    </tr>
-                </thead>
-                <tbody data-bind="foreach: WorkItems" class="ui-widget-content">
-                    <tr>
-                        <td data-bind="text: Name"></td>
-                        <td data-bind="text: Status"></td>
-                    </tr>
-                </tbody>
-            </table>
+        <div  class="widget" id="workItemList"  data-bind="visible: IsCurrentWidget('WorkItems')">
+            <button class="SmartButton" id="backbutton" data-bind="click: Back">Back to Projects</button>
+			<h2>My work items</h2>
+			<div data-bind="foreach: WorkItems">
+                <div class="Cell">
+					<h2 class="SelectLabel" data-bind="text: Name, click: $parent.SelectProject"></h2>
+				</div>
+			</div>
         </div>
     </body>
 </html>

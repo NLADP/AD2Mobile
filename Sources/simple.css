@@ -15,8 +15,6 @@ H1
 {
 	color: white;
 	font-side: 18px;
-	width: 98%
-	height: 24px;
 }
 
 H2
@@ -24,7 +22,7 @@ H2
 	color: orange;
 	font-size: 18px;
 	height: 24px;
-	width: 98%;
+	padding-bottom: 4px;
 	border-bottom: 1px solid white;
 }
 
@@ -33,13 +31,34 @@ H2
 	color: white;
 	font-size: 16px;
 	height: 24px;
-	width: 98%;
 }
+
+.SelectLabel
+{
+	color: white;
+	font-size: 16px;
+	height: 16px;
+	padding: 6px;
+	border-bottom: 0px;
+}
+
+.SideLabel
+{
+	color: gray;
+	font-size: 10px;
+}
+
+.Cell
+{
+	padding-bottom: 2px;
+	border-bottom: 1px solid grey;
+}
+
 
 .Field
 {
-	width: 98%;
-	height: 24px;
+	height: 28px;
+	width: 100%;
 }
 
 .SmartButton
@@ -48,16 +67,12 @@ H2
 	background-color: black;
 	color: white;
 	font: 16px;
-	width: 100px;
+	padding-left: 20px;
+	padding-right: 20px;
 	height: 30px;
 }
 
 .SmartButton:hover
 {
-	border: 1px solid white;
 	background-color: orange;
-	color: white;
-	font: 16px;
-	width: 100px;
-	height: 30px;
 }
