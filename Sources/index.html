@@ -6,12 +6,6 @@
         <link type="text/css" href="simple.css" rel="stylesheet" />
 		<meta name="viewport" content="width=device-width">
         
-        <style type="text/css">
-            html {
-                width: 900px;
-            }
-        </style>
-
         <script type="text/javascript">
 
             var projectsVM = new ProjectViewModel();
@@ -31,6 +25,7 @@
 
 				self.CurrentWidget = ko.observable("Login");
 				self.WorkItems = ko.observableArray([]);
+				self.SelectedWorkItem = ko.observable({Name: "empty"});
 				
 				self.IsCurrentWidget = function(widget){
 					return widget == self.CurrentWidget();
@@ -46,9 +41,17 @@
                 self.Projects = ko.observableArray([]);
 
                 self.SelectProject = function (project) {
+					self.WorkItems([]);
                     self.GetWorkItems(project);
 					self.CurrentWidget("WorkItems");
                 };
+				
+				self.SelectWorkItem = function (workItem) {
+                    //self.GetWorkItems(project);
+					self.SelectedWorkItem(workItem);
+					self.CurrentWidget("ViewWorkItem");
+                };
+				
 
                 self.GetProjects = function() {
                     $.getJSON(baseUrl + "Project", function(allProjects) {
@@ -57,8 +60,12 @@
                     });
                 };
 
-                self.Back = function() {
-					projectsVM.CurrentWidget("Projects");
+                self.BackToWorkItems = function() {
+					projectsVM.CurrentWidget('WorkItems');
+                };
+				
+				self.BackToProjects = function() {
+					projectsVM.CurrentWidget('Projects');
                 };
             }
 
@@ -103,18 +110,29 @@
         <div class="widget" data-bind="visible: IsCurrentWidget('Projects')">
 			<h2>My projects</h2>
 			<div data-bind="foreach: Projects">
-                <div class="Cell">
-					<h2 class="SelectLabel" data-bind="text: Name, click: $parent.SelectProject"></h2>		
+                <div class="Cell" data-bind="click: $parent.SelectProject">
+					<h2 class="SelectLabel" data-bind="text: Name"></h2>		
 				</div>
 			</div>
         </div>
 
         <div  class="widget" id="workItemList"  data-bind="visible: IsCurrentWidget('WorkItems')">
-            <button class="SmartButton" id="backbutton" data-bind="click: Back">Back to Projects</button>
+            <button class="SmartButton" id="backbutton" data-bind="click: BackToProjects">Back to projects</button>
 			<h2>My work items</h2>
 			<div data-bind="foreach: WorkItems">
+                <div class="Cell" data-bind="click: $parent.SelectWorkItem">
+					<h2 class="SelectLabel" data-bind="text: Name"></h2>
+				</div>
+			</div>
+        </div>
+		
+		<div  class="widget" id="workItemView"  data-bind="visible: IsCurrentWidget('ViewWorkItem')">
+            <button class="SmartButton" id="backbutton" data-bind="click: BackToWorkItems">Back to work items</button>
+			<h2>Work item</h2>
+			<div>
                 <div class="Cell">
-					<h2 class="SelectLabel" data-bind="text: Name, click: $parent.SelectProject"></h2>
+					Name: <span class="SelectLabel" data-bind="text: SelectedWorkItem().Name"></span><br/>
+					Complexity: <span class="SelectLabel" data-bind="text: SelectedWorkItem().Complexity"></span>
 				</div>
 			</div>
         </div>
