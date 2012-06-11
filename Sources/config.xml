@@ -22,5 +22,5 @@
 
   <icon src="icon.png" />
   
-  <access origin="http://2c9a44f3e6bb47e99f12742cd1f72cfe.cloudapp.net/" />
+  <access origin="http://2c9a44f3e6bb47e99f12742cd1f72cfe.cloudapp.net" subdomains="true"/>
 </widget>

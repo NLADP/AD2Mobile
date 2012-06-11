@@ -2,71 +2,203 @@
     <head>
         <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
         <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.9/jquery-ui.min.js"></script>
-        <script type="text/javascript" src="knockout-2.1.0.js"></script>
+        <!--<script type="text/javascript" src="knockout-2.1.0.js"></script>-->
+        <script type="text/javascript" src="knockout-2.1.0.debug.js"></script>
+        <!--<link type="text/css" href="ui-darkness/jquery-ui-1.8.20.custom.css" rel="stylesheet" />-->
         <link type="text/css" href="simple.css" rel="stylesheet" />
-		<meta name="viewport" content="width=device-width">
+        <meta name="viewport" content="width=device-width" />
+        
+        <style type="text/css">
+            html {
+                width: 900px;
+            }
+        </style>
         
         <script type="text/javascript">
 
+            var END_OF_INPUT = -1;
+
+            var base64Chars = new Array(
+                'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H',
+                'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P',
+                'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X',
+                'Y', 'Z', 'a', 'b', 'c', 'd', 'e', 'f',
+                'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n',
+                'o', 'p', 'q', 'r', 's', 't', 'u', 'v',
+                'w', 'x', 'y', 'z', '0', '1', '2', '3',
+                '4', '5', '6', '7', '8', '9', '+', '/'
+            );
+            
+            var base64Str;
+            var base64Count;
+            function setBase64Str(str) {
+                base64Str = str;
+                base64Count = 0;
+            }
+
+            function readBase64() {
+                if (!base64Str) return END_OF_INPUT;
+                if (base64Count >= base64Str.length) return END_OF_INPUT;
+                var c = base64Str.charCodeAt(base64Count) & 0xff;
+                base64Count++;
+                return c;
+            }
+            
+            function encodeBase64(str) {
+                setBase64Str(str);
+                var result = '';
+                var inBuffer = new Array(3);
+                var lineCount = 0;
+                var done = false;
+                while (!done && (inBuffer[0] = readBase64()) != END_OF_INPUT) {
+                    inBuffer[1] = readBase64();
+                    inBuffer[2] = readBase64();
+                    result += (base64Chars[inBuffer[0] >> 2]);
+                    if (inBuffer[1] != END_OF_INPUT) {
+                        result += (base64Chars[((inBuffer[0] << 4) & 0x30) | (inBuffer[1] >> 4)]);
+                        if (inBuffer[2] != END_OF_INPUT) {
+                            result += (base64Chars[((inBuffer[1] << 2) & 0x3c) | (inBuffer[2] >> 6)]);
+                            result += (base64Chars[inBuffer[2] & 0x3F]);
+                        } else {
+                            result += (base64Chars[((inBuffer[1] << 2) & 0x3c)]);
+                            result += ('=');
+                            done = true;
+                        }
+                    } else {
+                        result += (base64Chars[((inBuffer[0] << 4) & 0x30)]);
+                        result += ('=');
+                        result += ('=');
+                        done = true;
+                    }
+                    lineCount += 4;
+                    if (lineCount >= 76) {
+                        result += ('\n');
+                        lineCount = 0;
+                    }
+                }
+                return result;
+            }
+
+            function GetAuthorizationToken(user, password) {
+                var tok = user + ':' + password;
+                var hash = encodeBase64(tok);
+                return "Basic " + hash;
+            }
+
+        </script>
+
+        <script type="text/javascript">
+
+            var AD2 = {};
+
+            AD2.CurrentUser = {};
+
+            AD2.Services = {};
+
+            AD2.Services.Get = function (service, data, success) {
+                $.ajax({
+                    url: baseUrl + service,
+                    dataType: 'json',
+                    beforeSend: function (xhr) {
+                        xhr.setRequestHeader("Authorization", GetAuthorizationToken(AD2.CurrentUser.Name, AD2.CurrentUser.Password));
+                    },
+                    data: data,
+                    success: success,
+                    error: function (message) {
+                        alert(message);
+                    }
+                });
+            };
+            
             var projectsVM = new ProjectViewModel();
-            
-            
-//            var baseUrl = "http://localhost/Dashboard/";
-            var baseUrl = "http://2c9a44f3e6bb47e99f12742cd1f72cfe.cloudapp.net/";
-        
+
+
+            var baseUrl = "http://localhost/Dashboard/Services/";
+//            var baseUrl = "http://2c9a44f3e6bb47e99f12742cd1f72cfe.cloudapp.net/";
+
             function Observable(data) {
                 for (var member in data) {
                     this[member] = ko.observable(data[member]);
                 }
             }
-        
+
             function ProjectViewModel() {
                 var self = this;
 
-				self.CurrentWidget = ko.observable("Login");
-				self.WorkItems = ko.observableArray([]);
-				self.SelectedWorkItem = ko.observable({Name: "empty"});
-				
-				self.IsCurrentWidget = function(widget){
-					return widget == self.CurrentWidget();
-				}
+                self.CurrentWidget = ko.observable("Login");
+                self.WorkItems = ko.observableArray([]);
+                self.Complexities = ko.observableArray([]);
+                self.Statusses = ko.observableArray([]);
+                self.SelectedWorkItem = ko.observable({ Name: "empty" });
+
+                self.IsCurrentWidget = function(widget) {
+                    return widget == self.CurrentWidget();
+                };
 
                 self.GetWorkItems = function (project) {
-                    $.getJSON(baseUrl + "WorkItem", { project: project.Id() }, function (allItems) {
-                        var items = $.map(allItems, function (item) { return new Observable(item); });
+                    AD2.Services.Get("WorkItem", { project: project.Id() }, function(allItems) {
+                        var items = $.map(allItems, function(item) { return new Observable(item); });
                         self.WorkItems(items);
+                        self.GetStatusses(project);
+                    });
+
+                };
+
+                self.GetComplexities = function (project) {
+                    AD2.Services.Get("Complexity", { project: project.Id() }, function (allItems) {
+                        var items = $.map(allItems, function (item) { return new Observable(item); });
+                        self.Complexities(items);
+                    });
+                };
+
+                self.GetStatusses = function (project) {
+                    AD2.Services.Get("Status", { project: project.Id() }, function (allItems) {
+                        var items = $.map(allItems, function (status) {
+
+                            var wips = $.grep(self.WorkItems(), function(workItem, i) { return workItem.Status() == status.Id; });
+                            status.WorkItems = ko.observableArray(wips
+                                );
+                            return new Observable(status);
+                        });
+                        self.Statusses(items);
                     });
                 };
 
                 self.Projects = ko.observableArray([]);
 
-                self.SelectProject = function (project) {
-					self.WorkItems([]);
-                    self.GetWorkItems(project);
-					self.CurrentWidget("WorkItems");
+                self.SelectProject = function (p) {
+                    self.WorkItems([]);
+                    self.GetWorkItems(p);
+                    self.GetComplexities(p);
+                    
+                    self.CurrentWidget("WorkItems");
                 };
-				
-				self.SelectWorkItem = function (workItem) {
+
+                self.SelectWorkItem = function (workItem) {
                     //self.GetWorkItems(project);
-					self.SelectedWorkItem(workItem);
-					self.CurrentWidget("ViewWorkItem");
-                };
-				
-
-                self.GetProjects = function() {
-                    $.getJSON(baseUrl + "Project", function(allProjects) {
-                        var projects = $.map(allProjects, function (item) { return new Observable(item); });
-                        self.Projects(projects);
-                    });
+                    self.SelectedWorkItem(workItem);
+                    self.CurrentWidget("ViewWorkItem");
                 };
 
-                self.BackToWorkItems = function() {
-					projectsVM.CurrentWidget('WorkItems');
+
+                self.GetProjects = function () {
+                    AD2.Services.Get("Project", {},
+                        function (allProjects) {
+                            var projects = $.map(allProjects, function (item) { return new Observable(item); });
+                            self.Projects(projects);
+                            $("#projectList").show();
+                        });
                 };
-				
-				self.BackToProjects = function() {
-					projectsVM.CurrentWidget('Projects');
+
+                self.BackToWorkItems = function () {
+                    projectsVM.CurrentWidget('WorkItems');
                 };
+
+                self.BackToProjects = function () {
+                    projectsVM.CurrentWidget('Projects');
+                };
+
+                
             }
 
             $(document).ready(function () {
@@ -76,12 +208,15 @@
                             UserName: $("#UserName").val(),
                             Password: $("#Password").val()
                         })
-                        .success(function (d) {
+                        .success(function () {
+                            AD2.CurrentUser.Name = $("#UserName").val();
+                            AD2.CurrentUser.Password = $("#Password").val();
+                            
                             projectsVM.GetProjects();
                             projectsVM.CurrentWidget("Projects");
                         })
 						.error(function (e) {
-							alert(e);
+						    alert(e);
 						});
                 });
 
@@ -92,22 +227,22 @@
         </script>
     </head>
     <body class="Dashboard" >
-        <H1 >AD2 Mobile</H1>
-        <div class="widget" id="dialog" data-bind="visible: IsCurrentWidget('Login')">
+        <h1 >AD2 Mobile</h1>
+        <div class="Widget" id="dialog" data-bind="visible: IsCurrentWidget('Login')">
         <form id="LoginForm">
             <P>
 				<h2 >Login</h2>
-                <LABEL class="Label" for="UserName">Account</LABEL><br />
-                <input class="Field" type="text" id="UserName" name="UserName" ><BR />
+                <label class="Label" for="UserName">Account</label><br />
+                <input class="Field" type="text" id="UserName" name="UserName" /><br />
 				<br />
-                <LABEL class="Label" for="Password">Password</LABEL></br>
-                <input class="Field" type="password" id="Password" name="Password" ><BR /><br/>
-                <input class="SmartButton" type="button" value="Login" id="btnSubmit" > 
+                <label class="Label" for="Password">Password</label><br />
+                <input class="Field" type="password" id="Password" name="Password" /><br /><br/>
+                <input class="SmartButton" type="button" value="Login" id="btnSubmit" /> 
             </P>
         </form>
         </div>
         
-        <div class="widget" data-bind="visible: IsCurrentWidget('Projects')">
+        <div class="Widget" data-bind="visible: IsCurrentWidget('Projects')">
 			<h2>My projects</h2>
 			<div data-bind="foreach: Projects">
                 <div class="Cell" data-bind="click: $parent.SelectProject">
@@ -116,18 +251,22 @@
 			</div>
         </div>
 
-        <div  class="widget" id="workItemList"  data-bind="visible: IsCurrentWidget('WorkItems')">
-            <button class="SmartButton" id="backbutton" data-bind="click: BackToProjects">Back to projects</button>
-			<h2>My work items</h2>
-			<div data-bind="foreach: WorkItems">
-                <div class="Cell" data-bind="click: $parent.SelectWorkItem">
-					<h2 class="SelectLabel" data-bind="text: Name"></h2>
-				</div>
-			</div>
+        <div  class="Widget" id="workItemList"  data-bind="visible: IsCurrentWidget('WorkItems')">
+            <button class="SmartButton" id="backToProjects" data-bind="click: BackToProjects">Back to projects</button>
+            <h2>My work items</h2>
+            <span data-bind="foreach: Statusses" >
+                <span data-bind="text: Name" class="StatusColumn">
+                    <div data-bind="foreach: $data.WorkItems">
+                        <div class="Cell" data-bind="click: $parent.SelectWorkItem">
+                            <h2 class="SelectLabel" data-bind="text: Name"></h2>
+                        </div>
+                    </div>
+                </span>
+            </span>
         </div>
 		
-		<div  class="widget" id="workItemView"  data-bind="visible: IsCurrentWidget('ViewWorkItem')">
-            <button class="SmartButton" id="backbutton" data-bind="click: BackToWorkItems">Back to work items</button>
+		<div  class="Widget" id="workItemView"  data-bind="visible: IsCurrentWidget('ViewWorkItem')">
+            <button class="SmartButton" id="backToWorkItems" data-bind="click: BackToWorkItems">Back to work items</button>
 			<h2>Work item</h2>
 			<div>
                 <div class="Cell">
